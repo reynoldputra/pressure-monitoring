@@ -7,12 +7,12 @@ import time
 from pyModbusTCP.client import ModbusClient
 
 # init modbus client
-c = ModbusClient(host="10.10.100.254",auto_open=True)
+c = ModbusClient(host="192.168.246.242",auto_open=True)
 
 # main read loop
 while True:
     # read 10 registers at address 0, store result in regs list
-    regs_l = c.read_holding_registers(0, 10)
+    regs_l = c.read_holding_registers(0, 1)
 
     # if success display registers
     if regs_l:
