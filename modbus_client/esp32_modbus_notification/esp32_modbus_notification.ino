@@ -13,6 +13,11 @@
 #define BOTtoken "7594584104:AAG-COojfNwNe5APYXN3vLYy7qJ00G63dUY"
 #define CHAT_ID "-1002414792856"
 
+const uint16_t RAW_MIN = 30994;
+const uint16_t RAW_MAX = 34982;
+const float PRESSURE_MIN = 0.0;   // kPa
+const float PRESSURE_MAX = 50.0;  // kPa
+
 // Zone configuration struct
 struct ZoneConfig {
   String name;
@@ -39,15 +44,15 @@ struct ZoneNotification {
 ZoneConfig zones[] = {
   {
     "Zone A",
-    IPAddress(192,168,246,242),
-    0,    // reg
-    1,    // numReg
-    1,    // unitId
-    15,   // maxThreshold
-    5,    // minThreshold
-    false,// isAboveMax
-    false,// isBelowMin
-    0     // lastNotifTime
+    IPAddress(192, 168, 246, 252),
+    0,      // reg
+    1,      // numReg
+    1,      // unitId
+    15,     // maxThreshold
+    5,      // minThreshold
+    false,  // isAboveMax
+    false,  // isBelowMin
+    0       // lastNotifTime
   }
   // Add more zones as needed
 };
@@ -73,7 +78,7 @@ void sendMessageMultipleZones(ZoneNotification notifications[], int numZones) {
     message += "  Current: " + String(pres_value) + " Pa\n";
     message += "  Thresholds: Min " + String(minThresh) + " Pa, Max " + String(maxThresh) + " Pa\n";
     message += "  Status: ";
-    
+
     if (isMaxWarning) {
       message += "ALERT - Above Maximum Threshold\n";
     } else {
@@ -88,15 +93,15 @@ void sendMessageMultipleZones(ZoneNotification notifications[], int numZones) {
   Serial.println(message);
 }
 
-void checkZoneThresholds(ZoneConfig& zone, uint16_t value) {
+void checkZoneThresholds(ZoneConfig& zone, float value) {
   unsigned long currentMillis = millis();
   bool shouldNotify = false;
-  ZoneNotification notification = { 
-    zone.name, 
-    value, 
+  ZoneNotification notification = {
+    zone.name,
+    value,
     false,
     zone.maxThreshold,
-    zone.minThreshold 
+    zone.minThreshold
   };
 
   // Check maximum threshold
@@ -156,10 +161,11 @@ void loop() {
       uint16_t result;
       if (mb.readHreg(zones[i].ip, zones[i].reg, &result, zones[i].numReg, NULL, zones[i].unitId)) {
         Serial.print(zones[i].name + " reading: ");
-        Serial.println(result);
+        float pressure = mapPressure(result, RAW_MIN, RAW_MAX, PRESSURE_MIN, PRESSURE_MAX);
+        Serial.println(pressure);
         
         if (result != 0) {
-          checkZoneThresholds(zones[i], result);
+          checkZoneThresholds(zones[i], pressure);
         }
       } else {
         Serial.println("Failed reading " + zones[i].name);
@@ -173,4 +179,24 @@ void loop() {
   }
 
   mb.task();  // Common local Modbus task
+}
+
+
+float mapPressure(uint16_t value, uint16_t rawMin, uint16_t rawMax, float pressureMin, float pressureMax) {
+
+  if (value < rawMin) {
+    Serial.println("Value below RAW_MIN!");
+    value = rawMin;
+  }
+  if (value > rawMax) {
+    Serial.println("Value above RAW_MAX!");
+    value = rawMax;
+  }
+
+  float numerator = (float)(value - rawMin);
+  float denominator = (float)(rawMax - rawMin);
+  float ratio = numerator / denominator;
+  float result = pressureMin + ratio * (pressureMax - pressureMin);
+
+  return result;
 }

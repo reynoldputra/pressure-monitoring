@@ -6,7 +6,7 @@
 #include <ModbusIP_ESP8266.h>
 
 int REG = 0;  // Modbus Hreg Offset
-int NUMBER_REG = 8;
+int NUMBER_REG = 1;
 
 IPAddress remote(10, 10, 100, 254);  // Address of Modbus Slave device
 ModbusIP mb;                         //ModbusIP object
@@ -30,22 +30,17 @@ void setup() {
   mb.client();
 }
 
-uint16_t res[8];
+uint16_t res;
 
 void loop() {
   if (mb.isConnected(remote)) {  // Check if connection to Modbus Slave is established
 
-    if (mb.readHreg(remote, REG, res, NUMBER_REG, NULL, 1)) {
+    if (mb.readHreg(remote, REG, &res, NUMBER_REG, NULL, 1)) {
       Serial.println("Success reading");
-      for (int j = 0; j < 8; j++) {
-        Serial.print(res[j]);
-        Serial.print(",");
-      }
+      Serial.println(res);
     } else {
       Serial.println("Failed reading");
     }
-
-    Serial.println();
     delay(1000);  // Pulling interval
   } else {
     Serial.println("Connecting to modbus");
