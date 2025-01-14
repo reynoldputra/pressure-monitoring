@@ -351,29 +351,6 @@
             });
     }
 
-    function deleteCard(id) {
-        const confirmDelete = confirm('Are you sure you want to delete this entry?');
-        if (!confirmDelete) return;
-
-        fetch(`http://localhost:8001/delete_entry/${card.id}`, { method: 'DELETE' })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to delete data');
-                }
-                return response.json();
-            })
-            .then(result => {
-                console.log('Server Response:', result);
-                showNotification('Entry deleted successfully!');
-                ipCards = ipCards.filter(c => c.id !== id);
-                renderCards();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Failed to delete data!', true);
-            });
-    }
-
     function getDataDB() {
         fetch('http://localhost:8001/entries', {
             method: 'GET',
@@ -498,38 +475,80 @@
             card.isNew = false;
             renderCards();
         }
-        
-  function deleteCard(id) {
-        deleteId = id;
-        const card = ipCards.find(c => c.id === id);
-        const modal = document.getElementById('delete-modal');
-        const deleteMessage = document.getElementById('delete-message');
-        deleteMessage.textContent = `Are you sure you want to delete the IP for ${card.title}?`;
-        modal.style.display = 'flex';
-    }
 
-    document.getElementById('confirm-delete-btn').addEventListener('click', () => {
-        if (deleteId !== null) {
-            fetch(`http://localhost:8001/delete_entry/${deleteId}`, { method: 'DELETE' })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to delete data');
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    console.log('Server Response:', result);
-                    showNotification('Entry deleted successfully!');
-                    ipCards = ipCards.filter(card => card.id !== deleteId);
-                    renderCards();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Failed to delete data!', true);
-                });
+
+    // function deleteCard(id) {
+    //     deleteId = id;
+    //     const card = ipCards.find(c => c.id === id);
+    //     const modal = document.getElementById('delete-modal');
+    //     const deleteMessage = document.getElementById('delete-message');
+    //     deleteMessage.textContent = `Are you sure you want to delete the IP for ${card.title}?`;
+    //     modal.style.display = 'flex';
+    // }
+
+    // document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+    //     if (deleteId !== null) {
+    //         fetch(`http://localhost:8001/delete_entry/${deleteId}`, { method: 'DELETE' })
+    //             .then(response => {
+    //                 if (!response.ok) {
+    //                     throw new Error('Failed to delete data');
+    //                 }
+    //                 return response.json();
+    //             })
+    //             .then(result => {
+    //                 console.log('Server Response:', result);
+    //                 showNotification('Entry deleted successfully!');
+    //                 ipCards = ipCards.filter(card => card.id !== deleteId);
+    //                 renderCards();
+    //             })
+    //             .catch(error => {
+    //                 console.error('Error:', error);
+    //                 showNotification('Failed to delete data!', true);
+    //             });
+    //     }
+    //     closeModal();
+    // });
+
+    // // document.getElementById('cancel-delete-btn').addEventListener('click', closeModal);
+
+    // function closeModal() {
+    //     const modal = document.getElementById('delete-modal');
+    //     modal.style.display = 'none';
+    //     deleteId = null;
+    // }
+
+
+        function deleteCard(id) {
+            deleteId = id;
+            const card = ipCards.find(c => c.id === id);
+            const modal = document.getElementById('delete-modal');
+            const deleteMessage = document.getElementById('delete-message');
+            deleteMessage.textContent = `Are you sure you want to delete the IP for ${card.title}?`;
+            modal.style.display = 'flex';
         }
-        closeModal();
-    });
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+            if (deleteId !== null) {
+                fetch(`http://localhost:8001/delete_entry/${deleteId}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to delete data');
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        console.log('Server Response:', result);
+                        showNotification('Entry deleted successfully!');
+                        ipCards = ipCards.filter(card => card.id !== deleteId);
+                        renderCards();
+                        closeModal();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to delete data!', true);
+                    });
+            }
+        });
 
         document.getElementById('cancel-delete-btn').addEventListener('click', closeModal);
 
@@ -538,6 +557,57 @@
             modal.style.display = 'none';
             deleteId = null;
         }
+
+        function renderCards() {
+            const container = document.getElementById('ip-cards-container');
+            container.innerHTML = ''; // Clear existing cards
+            ipCards.forEach(card => {
+                const cardElement = createCardElement(card);
+                container.appendChild(cardElement);
+            });
+        }
+
+        function createCardElement(card) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'ip-card';
+            cardDiv.innerHTML = `
+        <h3>${card.title}</h3>
+        <p>IP: ${card.ip}</p>
+        <button onclick="deleteCard(${card.id})">Delete</button>
+    `;
+            return cardDiv;
+        }
+
+    // document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+    //     if (deleteId !== null) {
+    //         fetch(`http://localhost:8001/delete_entry/${deleteId}`, { method: 'DELETE' })
+    //             .then(response => {
+    //                 if (!response.ok) {
+    //                     throw new Error('Failed to delete data');
+    //                 }
+    //                 return response.json();
+    //             })
+    //             .then(result => {
+    //                 console.log('Server Response:', result);
+    //                 showNotification('Entry deleted successfully!');
+    //                 ipCards = ipCards.filter(card => card.id !== deleteId);
+    //                 renderCards();
+    //             })
+    //             .catch(error => {
+    //                 console.error('Error:', error);
+    //                 showNotification('Failed to delete data!', true);
+    //             });
+    //     }
+    //     closeModal();
+    // });
+
+    //     document.getElementById('cancel-delete-btn').addEventListener('click', closeModal);
+
+    //     function closeModal() {
+    //         const modal = document.getElementById('delete-modal');
+    //         modal.style.display = 'none';
+    //         deleteId = null;
+    //     }
 
         // function renderCards() {
         //     const container = document.getElementById('ip-container');
