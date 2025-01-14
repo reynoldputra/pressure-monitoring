@@ -186,11 +186,11 @@
 
     <div id="delete-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h3>Konfirmasi Penghapusan</h3>
-            <p id="delete-message">Apakah Anda yakin ingin menghapus IP ini?</p>
+            <h3>Delete Confirmation</h3>
+            <p id="delete-message">Are you sure you want to delete this IP?</p>
             <div class="modal-actions">
-                <button id="cancel-delete-btn">Batal</button>
-                <button id="confirm-delete-btn">Ya</button>
+                <button id="cancel-delete-btn">Cancel</button>
+                <button id="confirm-delete-btn">Yes</button>
             </div>
         </div>
     </div>
@@ -293,133 +293,141 @@
     //             });
     //     }
 
+   function saveCard(id) {
+        const card = ipCards.find(c => c.id === id);
+        const cardElement = document.getElementById(`card-${id}`);
 
-    function saveCard(id) {
-            const card = ipCards.find(c => c.id === id);
-            const cardElement = document.getElementById(`card-${id}`);
+        // Get values from input fields
+        const title = cardElement.querySelector('.title-input').value;
+        const ip = cardElement.querySelector('.ip-input').value;
+        const min = parseInt(cardElement.querySelector('.min-input').value);
+        const max = parseInt(cardElement.querySelector('.max-input').value);
 
-            const title = cardElement.querySelector('.title-input').value;
-            const ip = cardElement.querySelector('.ip-input').value;
-            const min = parseInt(cardElement.querySelector('.min-input').value);
-            const max = parseInt(cardElement.querySelector('.max-input').value);
-
-            // Validasi input
-            if (!title || !ip || isNaN(min) || isNaN(max)) {
-                showNotification('Please fill in all fields!', true);
-                return;
-            }
-
-            if (min >= max) {
-                showNotification('Minimum value must be less than maximum value!', true);
-                return;
-            }
-
-            const data = { title, ip, min, max };
-            const endpoint = card.isNew
-                ? 'http://localhost:8001/add_entry'
-                : `http://localhost:8001/update_entry/${id}`;
-            const method = card.isNew ? 'POST' : 'PUT';
-
-            fetch(endpoint, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to save data');
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    console.log('Server Response:', result);
-                    showNotification('Data berhasil disimpan!');
-                    card.isEditing = false;
-                    card.isNew = false; 
-                    renderCards();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Gagal menyimpan data!', true);
-                });
+        if (!title || !ip || isNaN(min) || isNaN(max)) {
+            showNotification('Please fill in all fields!', true);
+            return;
         }
+
+        if (min >= max) {
+            showNotification('The minimum value must be less than the maximum!', true);
+            return;
+        }
+
+        const data = { title, ip, min, max };
+        const endpoint = card.isNew
+            ? 'http://localhost:8001/add_entry'
+            : `http://localhost:8001/update_entry/${id}`;
+        const method = card.isNew ? 'POST' : 'PUT';
+
+        fetch(endpoint, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Failed to save data');
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                showNotification('Data successfully saved!');
+                if (card.isNew) {
+                    card.id = result.id;
+                    card.isNew = false;
+                }
+                card.title = title;
+                card.ip = ip;
+                card.min = min;
+                card.max = max;
+                card.isEditing = false;
+                renderCards();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification(error.message || 'Failed to save data!', true);
+            });
+    }
 
     function deleteCard(id) {
-            const confirmDelete = confirm('Are you sure you want to delete this entry?');
-            if (!confirmDelete) return;
+        const confirmDelete = confirm('Are you sure you want to delete this entry?');
+        if (!confirmDelete) return;
 
-            fetch(`http://localhost:8001/delete_entry/${id}`, { method: 'DELETE' })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to delete data');
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    console.log('Server Response:', result);
-                    showNotification('Entry deleted successfully!');
-                    ipCards = ipCards.filter(c => c.id !== id);
-                    renderCards();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Failed to delete data!', true);
-                });
-        }
-        function getDataDB() {
-            fetch('http://localhost:8001/entries', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+        fetch(`http://localhost:8001/delete_entry/${card.id}`, { method: 'DELETE' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete data');
+                }
+                return response.json();
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to retrieve data from the server');
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    console.log('Server Response:', result);
-                    ipCards = result.map((entry, id) => ({
-                        id: entry.id,
-                        title: entry.title,
-                        ip: entry.ip,
-                        min: entry.min,
-                        max: entry.max,
-                        isEditing: false
-                    }));
-                    renderCards();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Gagal mengambil data dari server!', true);
-                });
-        }
+            .then(result => {
+                console.log('Server Response:', result);
+                showNotification('Entry deleted successfully!');
+                ipCards = ipCards.filter(c => c.id !== id);
+                renderCards();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to delete data!', true);
+            });
+    }
+
+    function getDataDB() {
+        fetch('http://localhost:8001/entries', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to retrieve data from the server');
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Server Response:', result);
+                ipCards = result.map((entry, id) => ({
+                    id: entry.id,
+                    title: entry.title,
+                    ip: entry.ip,
+                    min: entry.min,
+                    max: entry.max,
+                    isEditing: false
+                }));
+                renderCards();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to retrieve data from the server!', true);
+            });
+    }
 
         function sendPostRequest(data) {
-            fetch('http://localhost:8001/add_entry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to send data to the server');
-                    }
-                    return response.json();
+                fetch('http://localhost:8001/add_entry', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
                 })
-                .then(result => {
-                    console.log('Server Response:', result);
-                    showNotification('Data berhasil dikirim ke server!');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Gagal mengirim data ke server!', true);
-                });
-        }
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to send data to the server');
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        console.log('Server Response:', result);
+                        showNotification('Data successfully sent to the server!');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to send data to the server!', true);
+                    });
+            }
 
       function updateUIWithEntries(entries) {
             const container = document.getElementById('entriesContainer');
@@ -431,59 +439,58 @@
                 container.appendChild(entryElement);
             });
         }
+    function updateEntry(id) {
+        const card = ipCards.find(c => c.id === id);
+        const cardElement = document.getElementById(`card-${id}`);
 
-        function updateEntry(id) {
-            const card = ipCards.find(c => c.id === id);
-            const cardElement = document.getElementById(`card-${id}`);
+        const title = cardElement.querySelector('.title-input').value;
+        const ip = cardElement.querySelector('.ip-input').value;
+        const min = parseInt(cardElement.querySelector('.min-input').value);
+        const max = parseInt(cardElement.querySelector('.max-input').value);
 
-            const title = cardElement.querySelector('.title-input').value;
-            const ip = cardElement.querySelector('.ip-input').value;
-            const min = parseInt(cardElement.querySelector('.min-input').value);
-            const max = parseInt(cardElement.querySelector('.max-input').value);
-
-            if (!title || !ip || isNaN(min) || isNaN(max)) {
-                showNotification('Please fill in all fields!', true);
-                return;
-            }
-
-            if (min >= max) {
-                showNotification('Minimum value must be less than maximum value!', true);
-                return;
-            }
-
-            const data = {
-                title: title,
-                ip: ip,
-                min: min,
-                max: max,
-            };
-
-            fetch(`http://localhost:8001/update_entry/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to update data');
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    console.log('Server Response:', result);
-                    showNotification('Data berhasil diperbarui!');
-                    card.isEditing = false; 
-                    renderCards(); 
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Gagal memperbarui data!', true);
-                });
-
-            getDataDB();
+        if (!title || !ip || isNaN(min) || isNaN(max)) {
+            showNotification('Please fill in all fields!', true);
+            return;
         }
+
+        if (min >= max) {
+            showNotification('Minimum value must be less than maximum value!', true);
+            return;
+        }
+
+        const data = {
+            title: title,
+            ip: ip,
+            min: min,
+            max: max,
+        };
+
+        fetch(`http://localhost:8001/update_entry/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update data');
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Server Response:', result);
+                showNotification('Data successfully updated!');
+                card.isEditing = false;
+                renderCards();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to update data!', true);
+            });
+
+        getDataDB();
+    }
 
         function editCard(id) {
             const card = ipCards.find(c => c.id === id);
@@ -492,12 +499,12 @@
             renderCards();
         }
         
-    function deleteCard(id) {
+  function deleteCard(id) {
         deleteId = id;
         const card = ipCards.find(c => c.id === id);
         const modal = document.getElementById('delete-modal');
         const deleteMessage = document.getElementById('delete-message');
-        deleteMessage.textContent = `Apakah Anda yakin ingin menghapus IP pada ${card.title}?`;
+        deleteMessage.textContent = `Are you sure you want to delete the IP for ${card.title}?`;
         modal.style.display = 'flex';
     }
 
@@ -567,23 +574,56 @@
         //     `).join('');
         // }
 
+        // function renderCards() {
+        //         const container = document.getElementById('ip-container');
+        //         container.innerHTML = '';
+        //         ipCards.forEach(card => {
+        //             const cardHTML = `
+        //     <div id="card-${card.id}" class="ip-card">
+        //         <input type="text" class="title-input" value="${card.title}" placeholder="Room Name" ${!card.isEditing ? 'disabled' : ''} />
+        //         <input type="text" class="ip-input" value="${card.ip}" placeholder="IP Address" ${!card.isEditing ? 'disabled' : ''} />
+        //         <input type="number" class="min-input" value="${card.min}" placeholder="Min" ${!card.isEditing ? 'disabled' : ''} />
+        //         <input type="number" class="max-input" value="${card.max}" placeholder="Max" ${!card.isEditing ? 'disabled' : ''} />
+                
+        //         <div class="actions">
+        //             <div class="buttons">
+        //             <button class="edit-btn" onclick="editCard(${card.id})" ${card.isEditing ? 'disabled' : ''}>
+        //                  <i class="fas fa-pencil-alt"></i></button>
+        //             <button class="delete-btn" onclick="deleteCard(${card.id})">
+        //                   <i class="fas fa-trash-alt"></i></button>
+        //             </div>
+        //             ${card.isEditing ? `<button class="save-btn" onclick="saveCard(${card.id})">Save</button>` : ''}
+        //         </div>
+        //     </div>
+        // `;
+        //             container.innerHTML += cardHTML;
+        //         });
+        //     }
+
         function renderCards() {
                 const container = document.getElementById('ip-container');
                 container.innerHTML = '';
                 ipCards.forEach(card => {
                     const cardHTML = `
             <div id="card-${card.id}" class="ip-card">
-                <input type="text" class="title-input" value="${card.title}" placeholder="Title" ${!card.isEditing ? 'disabled' : ''} />
-                <input type="text" class="ip-input" value="${card.ip}" placeholder="IP Address" ${!card.isEditing ? 'disabled' : ''} />
-                <input type="number" class="min-input" value="${card.min}" placeholder="Min" ${!card.isEditing ? 'disabled' : ''} />
-                <input type="number" class="max-input" value="${card.max}" placeholder="Max" ${!card.isEditing ? 'disabled' : ''} />
+                ${card.isEditing ? `
+                    <input type="text" class="title-input" value="${card.title}" placeholder="Room Name" />
+                    <input type="text" class="ip-input" value="${card.ip}" placeholder="IP Address" />
+                    <input type="number" class="min-input" value="${card.min}" placeholder="Min" />
+                    <input type="number" class="max-input" value="${card.max}" placeholder="Max" />
+                ` : `
+                    <p><strong>Room Name:</strong> ${card.title}</p>
+                    <p><strong>IP Address:</strong> ${card.ip}</p>
+                    <p><strong>Min:</strong> ${card.min}</p>
+                    <p><strong>Max:</strong> ${card.max}</p>
+                `}
                 
                 <div class="actions">
                     <div class="buttons">
-                    <button class="edit-btn" onclick="editCard(${card.id})" ${card.isEditing ? 'disabled' : ''}>
-                         <i class="fas fa-pencil-alt"></i></button>
-                    <button class="delete-btn" onclick="deleteCard(${card.id})">
-                          <i class="fas fa-trash-alt"></i></button>
+                        <button class="edit-btn" onclick="editCard(${card.id})" ${card.isEditing ? 'disabled' : ''}>
+                            <i class="fas fa-pencil-alt"></i></button>
+                        <button class="delete-btn" onclick="deleteCard(${card.id})">
+                            <i class="fas fa-trash-alt"></i></button>
                     </div>
                     ${card.isEditing ? `<button class="save-btn" onclick="saveCard(${card.id})">Save</button>` : ''}
                 </div>
@@ -592,6 +632,7 @@
                     container.innerHTML += cardHTML;
                 });
             }
+
         getDataDB();
     </script>
 </body>
