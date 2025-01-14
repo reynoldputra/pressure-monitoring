@@ -24,7 +24,7 @@ Semua kolom wajib diisi.
 - Nilai Max harus lebih besar dari Min.
 - Format Nama Ruangan:
   Disarankan untuk menggunakan format berikut pada Room Name:
-  - Ruang #[lantai]0[ruang]. Contoh: Ruang 102 berarti lantai 1, ruang 2.
+  - Ruang #[lantai]0[ruang]. Contoh: Ruang #102 berarti lantai 1, ruang 2.
 
 - Menyimpan Konfigurasi:
   Klik Save untuk menyimpan konfigurasi yang telah diisi. Lalu lakukan refresh halaman.
