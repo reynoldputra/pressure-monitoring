@@ -16,7 +16,7 @@
 
 ## Panduan Penggunaan Website
 
-### 1.Pengisian Kolom:
+### Pengisian Kolom:
 
 Semua kolom wajib diisi.
 
