@@ -211,20 +211,90 @@
             }, 2000);
         }
 
-        function addNewIP() {
-            const card = {
-                id: cardId++,
-                title: '',
-                ip: '',
-                min: '',
-                max: '',
-                isEditing: true
-            };
-            ipCards.push(card);
-            renderCards();
-        }
+        // function addNewIP() {
+        //     const card = {
+        //         id: cardId++,
+        //         title: '',
+        //         ip: '',
+        //         min: '',
+        //         max: '',
+        //         isEditing: true
+        //     };
+        //     ipCards.unshift(card);
+        //     renderCards();
+        // }
 
-      function saveCard(id) {
+        function addNewIP() {
+                const card = {
+                    id: cardId++,
+                    title: '',
+                    ip: '',
+                    min: '',
+                    max: '',
+                    isEditing: true,
+                    isNew: true 
+                };
+                ipCards.unshift(card);
+                renderCards();
+            }
+
+
+    //   function saveCard(id) {
+    //         const card = ipCards.find(c => c.id === id);
+    //         const cardElement = document.getElementById(`card-${id}`);
+
+    //         const title = cardElement.querySelector('.title-input').value;
+    //         const ip = cardElement.querySelector('.ip-input').value;
+    //         const min = parseInt(cardElement.querySelector('.min-input').value);
+    //         const max = parseInt(cardElement.querySelector('.max-input').value);
+
+    //         // Validasi input
+    //         if (!title || !ip || isNaN(min) || isNaN(max)) {
+    //             showNotification('Please fill in all fields!', true);
+    //             return;
+    //         }
+
+    //         if (min >= max) {
+    //             showNotification('Minimum value must be less than maximum value!', true);
+    //             return;
+    //         }
+
+    //         // Data untuk update
+    //         const data = {
+    //             title: title,
+    //             ip: ip,
+    //             min: min,
+    //             max: max,
+    //         };
+
+    //         // Mengirim data ke server
+    //         fetch(`http://localhost:8001/update_entry/${id}`, {
+    //             method: 'PUT',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(data),
+    //         })
+    //             .then(response => {
+    //                 if (!response.ok) {
+    //                     throw new Error('Failed to update data');
+    //                 }
+    //                 return response.json();
+    //             })
+    //             .then(result => {
+    //                 console.log('Server Response:', result);
+    //                 showNotification('Data successfully updated!');
+    //                 card.isEditing = false; // Nonaktifkan mode edit
+    //                 renderCards(); // Refresh tampilan kartu
+    //             })
+    //             .catch(error => {
+    //                 console.error('Error:', error);
+    //                 showNotification('Failed to update data!', true);
+    //             });
+    //     }
+
+
+    function saveCard(id) {
             const card = ipCards.find(c => c.id === id);
             const cardElement = document.getElementById(`card-${id}`);
 
@@ -244,37 +314,33 @@
                 return;
             }
 
-            // Data untuk update
-            const data = {
-                title: title,
-                ip: ip,
-                min: min,
-                max: max,
-            };
+            const data = { title, ip, min, max };
+            const endpoint = card.isNew
+                ? 'http://localhost:8001/add_entry'
+                : `http://localhost:8001/update_entry/${id}`;
+            const method = card.isNew ? 'POST' : 'PUT';
 
-            // Mengirim data ke server
-            fetch(`http://localhost:8001/update_entry/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            fetch(endpoint, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Failed to update data');
+                        throw new Error('Failed to save data');
                     }
                     return response.json();
                 })
                 .then(result => {
                     console.log('Server Response:', result);
-                    showNotification('Data successfully updated!');
-                    card.isEditing = false; // Nonaktifkan mode edit
-                    renderCards(); // Refresh tampilan kartu
+                    showNotification('Data berhasil disimpan!');
+                    card.isEditing = false;
+                    card.isNew = false; 
+                    renderCards();
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('Failed to update data!', true);
+                    showNotification('Gagal menyimpan data!', true);
                 });
         }
 
@@ -408,8 +474,8 @@
                 .then(result => {
                     console.log('Server Response:', result);
                     showNotification('Data berhasil diperbarui!');
-                    card.isEditing = false; // Setelah update, nonaktifkan mode edit
-                    renderCards(); // Refresh tampilan kartu
+                    card.isEditing = false; 
+                    renderCards(); 
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -422,41 +488,15 @@
         function editCard(id) {
             const card = ipCards.find(c => c.id === id);
             card.isEditing = true;
+            card.isNew = false;
             renderCards();
         }
-
-        // function deleteCard(id) {
-        //     deleteId = id;
-        //     const card = ipCards.find(c => c.id === id);
-        //     const modal = document.getElementById('delete-modal');
-        //     const deleteMessage = document.getElementById('delete-message');
-        //     deleteMessage.textContent = Apakah Anda yakin ingin menghapus IP pada ${card.title}?;
-        //     modal.style.display = 'flex';
-        // }
-
-
-        // document.getElementById('confirm-delete-btn').addEventListener('click', () => {
-        //     if (deleteId !== null) {
-        //         ipCards = ipCards.filter(card => card.id !== deleteId);
-        //         renderCards();
-        //         showNotification('Data berhasil dihapus!');
-        //     }
-        //     closeModal();
-        // });
-
-        // document.getElementById('cancel-delete-btn').addEventListener('click', closeModal);
-
-        // function closeModal() {
-        //     const modal = document.getElementById('delete-modal');
-        //     modal.style.display = 'none';
-        //     deleteId = null;
-        // }
+        
     function deleteCard(id) {
         deleteId = id;
         const card = ipCards.find(c => c.id === id);
         const modal = document.getElementById('delete-modal');
         const deleteMessage = document.getElementById('delete-message');
-
         deleteMessage.textContent = `Apakah Anda yakin ingin menghapus IP pada ${card.title}?`;
         modal.style.display = 'flex';
     }
@@ -492,40 +532,66 @@
             deleteId = null;
         }
 
-        function renderCards() {
-            const container = document.getElementById('ip-container');
-            container.innerHTML = ipCards.map(card => `
-                <div class="ip-card" id="card-${card.id}">
-                    <input class="title-input" type="text" placeholder="Room Name" 
-                           value="${card.title}" ${!card.isEditing ? 'disabled' : ''}>
-                    <input class="ip-input" type="text" placeholder="IP Address" 
-                           value="${card.ip}" ${!card.isEditing ? 'disabled' : ''}>
-                    <input class="min-input" type="number" placeholder="Minimal Pressure (Pa)" 
-                           value="${card.min}" ${!card.isEditing ? 'disabled' : ''}>
-                    <input class="max-input" type="number" placeholder="Maximum Pressure (Pa)" 
-                           value="${card.max}" ${!card.isEditing ? 'disabled' : ''}>
+        // function renderCards() {
+        //     const container = document.getElementById('ip-container');
+        //     container.innerHTML = ipCards.map(card => `
+        //         <div class="ip-card" id="card-${card.id}">
+        //             <input class="title-input" type="text" placeholder="Room Name" 
+        //                    value="${card.title}" ${!card.isEditing ? 'disabled' : ''}>
+        //             <input class="ip-input" type="text" placeholder="IP Address" 
+        //                    value="${card.ip}" ${!card.isEditing ? 'disabled' : ''}>
+        //             <input class="min-input" type="number" placeholder="Minimal Pressure (Pa)" 
+        //                    value="${card.min}" ${!card.isEditing ? 'disabled' : ''}>
+        //             <input class="max-input" type="number" placeholder="Maximum Pressure (Pa)" 
+        //                    value="${card.max}" ${!card.isEditing ? 'disabled' : ''}>
                    
-                    <div class="actions">
-                        <div class="buttons">
-                            <button class="edit-btn ${card.isEditing ? 'disabled' : ''}" 
-                                    onclick="editCard(${card.id})" 
-                                    ${card.isEditing ? 'disabled' : ''}>
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            <button class="delete-btn ${card.isEditing ? 'disabled' : ''}" 
-                                    onclick="deleteCard(${card.id})"
-                                    ${card.isEditing ? 'disabled' : ''}>
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                        <button class="save-btn ${!card.isEditing ? 'disabled' : ''}" 
-                                onclick="saveCard(${card.id})">
-                            Save
-                        </button>
+        //             <div class="actions">
+        //                 <div class="buttons">
+        //                     <button class="edit-btn ${card.isEditing ? 'disabled' : ''}" 
+        //                             onclick="editCard(${card.id})" 
+        //                             ${card.isEditing ? 'disabled' : ''}>
+        //                         <i class="fas fa-pencil-alt"></i>
+        //                     </button>
+        //                     <button class="delete-btn ${card.isEditing ? 'disabled' : ''}" 
+        //                             onclick="deleteCard(${card.id})"
+        //                             ${card.isEditing ? 'disabled' : ''}>
+        //                         <i class="fas fa-trash-alt"></i>
+        //                     </button>
+        //                 </div>
+        //                 <button class="save-btn ${!card.isEditing ? 'disabled' : ''}" 
+        //                         onclick="saveCard(${card.id})">
+        //                     Save
+        //                 </button>
+        //             </div>
+        //         </div>
+        //     `).join('');
+        // }
+
+        function renderCards() {
+                const container = document.getElementById('ip-container');
+                container.innerHTML = '';
+                ipCards.forEach(card => {
+                    const cardHTML = `
+            <div id="card-${card.id}" class="ip-card">
+                <input type="text" class="title-input" value="${card.title}" placeholder="Title" ${!card.isEditing ? 'disabled' : ''} />
+                <input type="text" class="ip-input" value="${card.ip}" placeholder="IP Address" ${!card.isEditing ? 'disabled' : ''} />
+                <input type="number" class="min-input" value="${card.min}" placeholder="Min" ${!card.isEditing ? 'disabled' : ''} />
+                <input type="number" class="max-input" value="${card.max}" placeholder="Max" ${!card.isEditing ? 'disabled' : ''} />
+                
+                <div class="actions">
+                    <div class="buttons">
+                    <button class="edit-btn" onclick="editCard(${card.id})" ${card.isEditing ? 'disabled' : ''}>
+                         <i class="fas fa-pencil-alt"></i></button>
+                    <button class="delete-btn" onclick="deleteCard(${card.id})">
+                          <i class="fas fa-trash-alt"></i></button>
                     </div>
+                    ${card.isEditing ? `<button class="save-btn" onclick="saveCard(${card.id})">Save</button>` : ''}
                 </div>
-            `).join('');
-        }
+            </div>
+        `;
+                    container.innerHTML += cardHTML;
+                });
+            }
         getDataDB();
     </script>
 </body>
