@@ -1,10 +1,13 @@
 # Pressure Sensor Notification System
 
 ## TODO
-
-- Delete and move all telegram API to private file (ignored from git)
-- Test notification system with Hf2211
-- (Optional) Make web dashboard
++ Make web dashboard
+- Delete and move all credentials and private resource to private file (ignored from git)
+- Test router
+- Refactor modbus calculation in python (better performance)
+- Move telegram call API to python
+- Integration available zone and rules with database 
+- (Optional) Refactor to react
 - (Optional) Test multiple modbus connection
 
 ## Question
