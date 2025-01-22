@@ -1,14 +1,16 @@
 # Pressure Sensor Notification System
 
 ## TODO
-+ Make web dashboard
-- Delete and move all credentials and private resource to private file (ignored from git)
-- Test router
-- Refactor modbus calculation in python (better performance)
-- Move telegram call API to python
-- Integration available zone and rules with database 
-- (Optional) Refactor to react
-- (Optional) Test multiple modbus connection
+- [x] Make web dashboard
+- [ ] Test router
+- [ ] Delete and move all credentials and private resource to private file (ignored from git)
+- [ ] Refactor modbus calculation in python
+- [ ] Setup better development environment
+- [ ] Integration available zone and rules with database
+- [ ] Move telegram call API to python
+- [ ] Retest website with new python API
+- [ ] (Optional) Refactor to react
+- [ ] (Optional) Test multiple modbus connection
 
 ## Question
 
