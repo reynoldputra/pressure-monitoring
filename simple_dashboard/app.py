@@ -1,25 +1,10 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, render_template, request, jsonify, g
 from flask_cors import cross_origin
 import sqlite3
 
 
 app = Flask(__name__)
-# CORS(app)
 DATABASE = 'data.db'
-
-
-# @app.route('/', methods=['POST'])
-# def handle_post():
-#     data = request.get_json()
-#     if not data:
-#         return jsonify({"error": "No JSON data provided"}), 400
-#     # Proses data sesuai kebutuhan
-#     print("Received data:", data)
-#     return jsonify({"message": "Data received successfully!"}), 200
-
-# if __name__ == '__main__':
-#     app.run(debug=True, host='0.0.0.0', port=8001)
-
 
 
 def get_db():
@@ -34,6 +19,11 @@ def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
+
+@app.route('/', methods=['GET'])
+@cross_origin()
+def index():
+   return render_template('./website.html')
 
 @app.route('/init_db', methods=['GET'])
 @cross_origin()
