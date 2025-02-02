@@ -7,7 +7,8 @@ import random
 from pyModbusTCP.client import ModbusClient
 
 # init modbus client
-c = ModbusClient(host="192.168.246.242", auto_open=True)
+# c = ModbusClient(host="192.168.246.242", auto_open=True)
+c = ModbusClient(host="0.0.0.0", auto_open=True)
 
 # main read loop
 while True:
