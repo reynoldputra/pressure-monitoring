@@ -4,7 +4,8 @@ from pyModbusTCP.client import ModbusClient
 
 # Initialize Modbus client
 # modbus_client = ModbusClient(host="192.168.246.242", auto_open=True)
-modbus_client = ModbusClient(host="0.0.0.0", auto_open=True)
+# modbus_client = ModbusClient(host="0.0.0.0", auto_open=True)
+modbus_client= ModbusClient(host="10.10.100.254",auto_open=True,timeout=10)
 
 def send_to_modbus():
     try:
