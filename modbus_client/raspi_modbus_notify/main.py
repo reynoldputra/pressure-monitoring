@@ -4,6 +4,11 @@ import logging
 from pyModbusTCP.client import ModbusClient
 import ast
 from typing import List
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv()
 
 # Configure logging with timestamp
 logging.basicConfig(
@@ -13,16 +18,17 @@ logging.basicConfig(
 )
 
 # Telegram configuration
-BOT_TOKEN = "7594584104:AAG-COojfNwNe5APYXN3vLYy7qJ00G63dUY"
-CHAT_ID = "-1002414792856"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 RAW_MIN = 30994
 RAW_MAX = 34982
 PRESSURE_MIN = 0.0  # kPa
 PRESSURE_MAX = 50.0  # kPa
-NOTIF_INTERVAL = 5  # seconds
-CHECK_INTERVAL = 1  # seconds
-API_URL = "http://localhost:8001/entries"
+NOTIF_INTERVAL = int(os.getenv("NOTIF_INTERVAL", 5))  # seconds
+CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", 1))  # seconds
+API_BASE_URL = os.getenv("API_BASE_URL")
+API_URL = f"{API_BASE_URL}/entries"
 
 class ZoneConfig:
     def __init__(self, name, ip, port, reg, num_reg, max_threshold, min_threshold):
