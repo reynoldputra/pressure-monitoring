@@ -82,15 +82,6 @@ def init_db():
 def get_entries():
     try:
         db = get_db()
-        # Check if table exists
-        cursor = db.execute("""
-            SELECT name FROM sqlite_master 
-            WHERE type='table' AND name='entries'
-        """)
-        if not cursor.fetchone():
-            app.logger.info('Table does not exist, initializing database')
-            init_db_schema()
-            
         cursor = db.execute('SELECT * FROM entries')
         entries = [dict(row) for row in cursor.fetchall()]
         app.logger.info(f'Retrieved {len(entries)} entries')

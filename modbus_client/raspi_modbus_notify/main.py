@@ -25,13 +25,14 @@ RAW_MIN = 30994
 RAW_MAX = 34982
 PRESSURE_MIN = 0.0  # kPa
 PRESSURE_MAX = 50.0  # kPa
-NOTIF_INTERVAL = int(os.getenv("NOTIF_INTERVAL", 5))  # seconds
+NOTIF_INTERVAL = int(os.getenv("NOTIF_INTERVAL", 15))  # seconds
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", 1))  # seconds
 API_BASE_URL = os.getenv("API_BASE_URL")
 API_URL = f"{API_BASE_URL}/entries"
 
 class ZoneConfig:
-    def __init__(self, name, ip, port, reg, num_reg, max_threshold, min_threshold):
+    def __init__(self, id, name, ip, port, reg, num_reg, max_threshold, min_threshold):
+        self.id = id
         self.name = name
         self.ip = ip
         self.port = port
@@ -68,6 +69,15 @@ class ZoneConfig:
         if original_value != value:
             logging.warning(f"[{self.name}] Raw value {original_value} was clamped to {value}")
         return pressure
+
+    def set_last_notif_time(self, value):
+        self.last_notif_time = value
+
+    def set_is_bellow_min(self, value):
+        self.is_below_min = value
+    
+    def set_is_above_max(self, value):
+        self.is_above_max = value
 
 def send_telegram_message(message):
     data = {"chat_id": CHAT_ID, "text": message}
@@ -132,6 +142,7 @@ def load_zones_from_api() -> List[ZoneConfig]:
         zones = []
         for entry in entries:
             zone = ZoneConfig(
+                id=entry['id'],
                 name=entry['title'],
                 ip=entry['ip'],
                 port=502,
@@ -151,10 +162,31 @@ def load_zones_from_api() -> List[ZoneConfig]:
 if __name__ == "__main__":
     logging.info("Starting pressure monitoring system")
     logging.info(f"Configuration: CHECK_INTERVAL={CHECK_INTERVAL}s, NOTIF_INTERVAL={NOTIF_INTERVAL}s")
+    zones = load_zones_from_api()
     
     while True:
+        new_zones = load_zones_from_api()
+            
+        zone_states = {
+            zone.id: {
+                'last_notif_time': zone.last_notif_time,
+                'is_below_min': zone.is_below_min,
+                'is_above_max': zone.is_above_max
+            } for zone in zones
+        }
+        
+        # Update new zones with previous states
+        for new_zone in new_zones:
+            if new_zone.id in zone_states:
+                previous_state = zone_states[new_zone.id]
+                new_zone.set_last_notif_time(previous_state['last_notif_time'])
+                new_zone.set_is_bellow_min(previous_state['is_below_min'])
+                new_zone.set_is_above_max(previous_state['is_above_max'])
+            
+        # Update zones list with new zones
+        zones = new_zones       
+
         try:
-            zones = load_zones_from_api()
             for zone in zones:
                 check_zone_thresholds(zone)
             time.sleep(CHECK_INTERVAL)

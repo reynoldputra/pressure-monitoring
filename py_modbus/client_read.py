@@ -10,7 +10,7 @@ from pyModbusTCP.client import ModbusClient
 # c = ModbusClient(host="192.168.246.242",auto_open=True)
 # c = ModbusClient(host="10.10.100.254",auto_open=True,timeout=10)
 # c = ModbusClient(host="192.168.1.100",auto_open=True,timeout=5)
-c = ModbusClient(host="192.168.1.123",auto_open=True,timeout=5)
+c = ModbusClient(host="192.168.1.5",auto_open=True,timeout=5)
 
 # main read loop
 while True:
