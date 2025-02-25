@@ -9,7 +9,7 @@
 - [x] Integration available zone and rules with database
 - [x] Move telegram call API to python
 - [x] Retest website with new python API
-- [ ] Add loading state when submit
+- [x] Add loading state when submit
 - [ ] Add nginx and basic auth
 - [ ] Add auto run python script
 - [ ] Setup open vpn
