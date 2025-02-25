@@ -92,7 +92,7 @@ def get_entries():
 
 @app.route('/add_entry', methods=['POST'])
 @cross_origin()
-def add_entry():
+def add_entry(): 
     data = request.get_json()
     if not data or not all(key in data for key in ('title', 'ip', 'min', 'max')):
         app.logger.warning(f'Invalid input data received: {data}')
